@@ -1,0 +1,42 @@
+services:
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    networks:
+      - pet-net
+
+  petstore:
+    build:
+      context: ./petstore
+      dockerfile: ./Dockerfile
+    container_name: petstore
+    ports:
+      - "3000:3000"
+    networks:
+      - pet-net
+    depends_on:
+      - mongodb
+    environment:
+      - PORT=3000
+      - DB_HOST=mongodb
+      - DB_PORT=27017
+      - DB_NAME=petstore
+      - AUTH_SERVER=http://auth:3001
+
+  auth:
+    build:
+      dockerfile: ./Dockerfile
+      context: ./auth
+    ports:
+      - "3001:3001"
+    networks:
+      - pet-net
+    environment:
+      - PORT=3001
+      - TEMPO_EXP=1d
+networks:
+  pet-net:
+    driver: bridge
